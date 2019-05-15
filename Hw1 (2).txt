@@ -1,0 +1,234 @@
+
+import java.util.Arrays;
+import java.util.Random;
+
+//Frank Finelli & Tahara Biva Q1
+
+public class DiskScheduling {
+		private int Cylinders;
+		private int seriesLength;
+		private int[] Series;
+		private int Starthead;
+		private int Totalhead;
+		private int randInt;
+//		int[] testSeries =  {25, 58, 78, 126, 145, 180, 200, 225,};
+        public DiskScheduling() {						
+        	Cylinders = 5000;
+        	seriesLength = 1000;
+        	FillSeries(); 										
+        }
+	    public int[] FillSeries() {						
+	    	 Series = new int[seriesLength];
+	    	 Random x =new Random();
+	    	 for (int i = 0; i<seriesLength;i++) { 				
+	    		 randInt = x.nextInt(Cylinders+1); 				
+    			 Series[i] = randInt;				
+	    	 }
+	    	 
+			return Series;
+	    }
+	    public int FCFS (int headDisk) {				
+	    	Totalhead = 0;										
+	    	Starthead = headDisk;								
+	    	for (int i = 0; i< seriesLength;i++) {				
+	    		Totalhead += Math.abs(Starthead - Series[i]);	
+//	    		System.out.println(Starthead+" - "+Series[i]);	
+	    		Starthead = Series[i];							
+	    	}
+//	    	System.out.println(Totalhead);
+			return Totalhead;
+	    }
+	    
+	    public int SSTF (int headDisk) {
+	    	Totalhead = 0;								
+	    	Starthead = headDisk;						
+	    	int indexofHead;										 
+	    	int indexofbehind=0;									
+	    	int indexoffront = 0;									
+	    	int behindDiff=0;										
+	    	int frontDiff=0;						
+    	    int[] tempArray= new int[seriesLength+1];				
+	    	for (int i = 0; i< seriesLength;i++) {				
+	    		tempArray[i] = Series[i];
+	    	}
+	    	tempArray[seriesLength] = headDisk;
+    	    Arrays.sort(tempArray);									
+    		indexofHead = Arrays.binarySearch(tempArray, headDisk); 
+    		indexofbehind = indexofHead-1;							
+    		indexoffront = indexofHead+1;
+	    	for (int i = 0; i< tempArray.length-1;i++) {
+	    		if(indexofbehind>=0 && indexoffront< tempArray.length) {
+		    		behindDiff = Math.abs(Starthead - tempArray[indexofbehind]); 
+		    		frontDiff =  Math.abs(Starthead - tempArray[indexoffront]);
+		    		if(behindDiff > frontDiff) {			
+		    			Totalhead+= frontDiff;
+		    			indexofHead = indexoffront;
+		    			Starthead = tempArray[indexoffront];
+		    			indexoffront+=1;
+		    		}
+		    		else{								
+		    			Totalhead+= behindDiff;
+		    			indexofHead = indexofbehind;
+		    			Starthead = tempArray[indexofbehind];
+		    			indexofbehind-=1;
+		    		}
+	  
+	    		else if(indexofbehind == -1){				//index before the original headDisk were requested already,
+		    		frontDiff =  Math.abs(Starthead - tempArray[indexoffront]);			//Get difference of cylinders in original headDisk
+	    			Totalhead+= frontDiff;
+	    			indexofHead = indexoffront;
+	    			Starthead = tempArray[indexoffront];
+	    			indexoffront+=1;
+	    		}
+	    		else if(indexoffront == tempArray.length){	//else if all the index after the original headDisk were requested already,
+		    		behindDiff = Math.abs(Starthead - tempArray[indexofbehind]);		//Get difference of cylinders of the original headDisk
+	     			Totalhead+= behindDiff;
+	    			indexofHead = indexofbehind;
+	    			Starthead = tempArray[indexofbehind];
+	    			indexofbehind-=1;
+	    		}
+	    	}
+//	    	System.out.println(Totalhead);
+			return Totalhead;
+	    }
+	    public int SCAN (int headDisk) {			
+	    	Totalhead = 0;
+	    	Starthead = headDisk;
+    	    int[] tempArray= new int[seriesLength+2];			
+    	    int indexofHead;
+    	    int tempx = 0;
+	    	for (int i = 0; i< seriesLength;i++) {				
+	    		tempArray[i] = Series[i];	
+	    	}
+	    	tempArray[seriesLength] = headDisk;
+    	    tempArray[seriesLength+1]=0;
+    	    Arrays.sort(tempArray);								
+    		indexofHead = Arrays.binarySearch(tempArray, headDisk);
+    		int low = indexofHead-1;							
+    		int high = indexofHead+1;
+    		for (int i = 0; i<tempArray.length-1;i++) {
+    			if(low>-1) {
+		    		Totalhead += Math.abs(Starthead - tempArray[low]);
+//		    		System.out.println(Starthead+" - "+ tempArray[low]);
+		    		Starthead = tempArray[low];
+		    		low+=-1;
+    			}
+				else {
+		    		Totalhead += Math.abs(tempArray[tempx] - tempArray[high]);
+		    		tempx=high;
+		    		high+=1;
+				}
+    		}
+//    		System.out.println(low+" - "+ high);
+//	    	System.out.println(Totalhead);
+			return Totalhead;
+	    }
+	    public int CSCAN (int headDisk) {
+	    	Totalhead = 0;
+	    	Starthead = headDisk;
+    	    int[] tempArray= new int[seriesLength+3];
+    	    int indexofHead;
+    	    int tempx = 0;
+	    	for (int i = 0; i< seriesLength;i++) {
+	    		tempArray[i] = Series[i];
+	    	}
+	    	tempArray[seriesLength] = headDisk;
+    	    tempArray[seriesLength+1]=0;
+    	    tempArray[seriesLength+2]=199;
+    	    Arrays.sort(tempArray);
+    		indexofHead = Arrays.binarySearch(tempArray, headDisk);
+    		int low = 0;
+    		int high = indexofHead+1;
+    		for (int i = 0; i<tempArray.length-2;i++) {
+    			if(high<=tempArray.length-1) {
+		    		Totalhead += Math.abs(Starthead - tempArray[high]);
+//		    		System.out.println(Starthead+" - "+ tempArray[high]);
+		    		Starthead = tempArray[high];
+		    		high+=1;
+    			}
+				else {
+					low+=1; 
+		    		Totalhead += Math.abs(tempArray[tempx] - tempArray[low]);
+//		    		System.out.println(tempArray[tempx]+" - "+ tempArray[low]);
+		    		tempx=low;
+				}
+    		}
+//	    	System.out.println(Totalhead);
+			return Totalhead;
+	    }
+	    public int CLOOK (int headDisk) {
+	    	Totalhead = 0;
+	    	Starthead = headDisk;
+    	    int[] tempArray= new int[seriesLength+1];
+    	    int indexofHead;
+    	    int tempx = 0;
+	    	for (int i = 0; i< seriesLength;i++) {
+	    		tempArray[i] = Series[i];
+	    	}
+	    	tempArray[seriesLength] = headDisk;
+    	    Arrays.sort(tempArray);
+    		indexofHead = Arrays.binarySearch(tempArray, headDisk);
+    		int low = 0;
+    		int high = indexofHead+1;
+    		for (int i = 0; i<tempArray.length-2;i++) {
+    			if(high<tempArray.length) {
+		    		Totalhead += Math.abs(Starthead - tempArray[high]);
+//		    		System.out.println(Starthead+" - "+ tempArray[high]);
+		    		Starthead = tempArray[high];
+		    		high+=1;
+    			}
+				else {
+					low+=1; 
+		    		Totalhead += Math.abs(tempArray[tempx] - tempArray[low]);
+//		    		System.out.println(tempArray[tempx]+" - "+ tempArray[low]);
+		    		tempx=low;
+				}
+    		}
+//	    	System.out.println(Totalhead);
+			return Totalhead;
+	    }
+	    public int LOOK (int headDisk) {
+	    	Totalhead = 0;
+	    	Starthead = headDisk;
+    	    int[] tempArray= new int[seriesLength+1];
+    	    int indexofHead;
+    	    int tempx = 0;
+	    	for (int i = 0; i< seriesLength;i++) {
+	    		tempArray[i] = Series[i];
+	    	}
+	    	tempArray[seriesLength] = headDisk;
+    	    Arrays.sort(tempArray);
+    		indexofHead = Arrays.binarySearch(tempArray, headDisk);
+    		int low = indexofHead-1;
+    		int high = indexofHead+1;
+    		for (int i = 0; i<tempArray.length-1;i++) {
+    			if(high<tempArray.length) {
+		    		Totalhead += Math.abs(Starthead - tempArray[high]);
+//		    		System.out.println(Starthead+" - "+ tempArray[high]);
+		    		Starthead = tempArray[high];
+		    		tempx= high;
+		    		high+=1;
+    			}
+				else {
+		    		Totalhead += Math.abs(tempArray[tempx] - tempArray[low]);
+//		    		System.out.println(tempArray[tempx]+" - "+ tempArray[low]);
+		    		tempx=low;
+					low-=1; 
+				}
+    		}
+//	    	System.out.println(Totalhead);
+			return Totalhead;
+	    }
+	    
+	public static void main(String[] args) {
+		
+		DiskScheduling Algorithm = new DiskScheduling();
+		System.out.println("The total amount of head movement required by FCFS is : "+Algorithm.FCFS(Integer.parseInt(args[0])) +"\n");
+		System.out.println("The total amount of head movement required by SSTF is : "+Algorithm.SSTF(Integer.parseInt(args[0]))+"\n");
+		System.out.println("The total amount of head movement required by SCAN is : "+Algorithm.SCAN(Integer.parseInt(args[0]))+"\n");
+		System.out.println("The total amount of head movement required by CSCAN is : "+Algorithm.CSCAN(Integer.parseInt(args[0]))+"\n");
+		System.out.println("The total amount of head movement required by CLOOK is : "+Algorithm.CLOOK(Integer.parseInt(args[0]))+"\n");
+		System.out.println("The total amount of head movement required by LOOK is : "+Algorithm.LOOK(Integer.parseInt(args[0]))+"\n");
+	}
+
+}
